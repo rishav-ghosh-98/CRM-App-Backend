@@ -3,12 +3,15 @@ const express = require("express");
 const cors = require("cors");
 const { initialiseDatabase } = require("./db/db.connect");
 const salesAgentRoutes = require("./routes/salesAgent.routes");
+const leadRoutes = require("./routes/leads.routes");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
 app.use("/agent", salesAgentRoutes);
+app.use("/leads", leadRoutes);
+// app.use("/lead", leadRoutes);
 
 const PORT = process.env.PORT || 5000;
 
