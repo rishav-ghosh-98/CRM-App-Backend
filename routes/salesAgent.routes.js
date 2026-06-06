@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { createSalesAgent } = require("../controllers/salesAgent.controller");
+const { createSalesAgent, getSalesAgent } = require("../controllers/salesAgent.controller");
 
 router.post("/", createSalesAgent);
+router.get("/", getSalesAgent)
 
 module.exports = router;
