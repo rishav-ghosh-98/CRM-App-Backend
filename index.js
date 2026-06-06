@@ -25,3 +25,4 @@ initialiseDatabase()
     console.error("Failed to initialize database", error);
     process.exit(1);
   });
+// this is a sample commit
