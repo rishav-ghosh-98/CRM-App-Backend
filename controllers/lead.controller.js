@@ -195,15 +195,8 @@ const updateLead = async (req, res) => {
       });
     }
 
-    const {
-      name,
-      source,
-      salesAgent,
-      status,
-      tags,
-      timeToClose,
-      priority,
-    } = req.body;
+    const { name, source, salesAgent, status, tags, timeToClose, priority } =
+      req.body;
 
     // Validate name
     if (!name || typeof name !== "string" || !name.trim()) {
@@ -285,6 +278,11 @@ const updateLead = async (req, res) => {
       timeToClose: closeTime,
       priority,
     };
+    if (status === "Closed") {
+      updatedLead.closedAt = new Date();
+    } else {
+      updatedLead.closedAt = null;
+    }
 
     const lead = await Lead.findByIdAndUpdate(id, updatedLead, {
       new: true,
