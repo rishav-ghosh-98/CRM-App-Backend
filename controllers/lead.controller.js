@@ -334,4 +334,30 @@ const deleteLead = async (req, res) => {
     });
   }
 };
-module.exports = { createLead, getAllLeads, updateLead, deleteLead };
+const getLeadById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        error: "Invalid Lead ID.",
+      });
+    }
+     const lead = await Lead.findById(id);
+      if (!lead) {
+      return res.status(404).json({
+        error: `Lead with ID '${id}' not found.`,
+      });
+    }
+
+    return res.status(200).json({
+      lead,
+      message: "Lead fetched successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      error: "Failed to find lead id.",
+    });
+  }
+};
+module.exports = { createLead, getAllLeads, updateLead, deleteLead, getLeadById };
