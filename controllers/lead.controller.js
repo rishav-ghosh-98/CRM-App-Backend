@@ -342,15 +342,20 @@ const getLeadById = async (req, res) => {
         error: "Invalid Lead ID.",
       });
     }
-     const lead = await Lead.findById(id);
+    const lead = await Lead.findById(id).populate("salesAgent", "name email");
       if (!lead) {
       return res.status(404).json({
         error: `Lead with ID '${id}' not found.`,
       });
     }
 
+    const leadDetails = {
+      ...lead.toObject(),
+      salesAgent: lead.salesAgent || null,
+    };
+
     return res.status(200).json({
-      lead,
+      lead: leadDetails,
       message: "Lead fetched successfully.",
     });
   } catch (error) {
