@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Lead = require("../models/leads.model");
 const SalesAgent = require("../models/salesAgent.models");
+const Comment = require("../models/comments.model");
 
 const validSources = [
   "Website",
@@ -18,6 +19,88 @@ const validStatuses = [
   "Closed",
 ];
 const validPriorities = ["High", "Medium", "Low"];
+
+const formatComment = (comment) => ({
+  id: comment._id,
+  commentText: comment.commentText,
+  author: comment.author?.name || comment.author,
+  createdAt: comment.createdAt,
+});
+
+const addComment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { commentText, author } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid Lead ID." });
+    }
+
+    if (typeof commentText !== "string" || !commentText.trim()) {
+      return res.status(400).json({
+        error: "Invalid input: 'commentText' is required and must be a string.",
+      });
+    }
+
+    const lead = await Lead.findById(id);
+    if (!lead) {
+      return res.status(404).json({
+        error: `Lead with ID '${id}' not found.`,
+      });
+    }
+
+    const authorId = author || lead.salesAgent;
+    if (!authorId || !mongoose.Types.ObjectId.isValid(authorId)) {
+      return res.status(400).json({
+        error: "A valid comment author is required. Assign a sales agent first.",
+      });
+    }
+
+    const authorExists = await SalesAgent.exists({ _id: authorId });
+    if (!authorExists) {
+      return res.status(404).json({
+        error: `Sales agent with ID '${authorId}' not found.`,
+      });
+    }
+
+    const comment = await Comment.create({
+      lead: id,
+      commentText: commentText.trim(),
+      author: authorId,
+    });
+
+    const savedComment = await comment.populate("author", "name");
+    return res.status(201).json(formatComment(savedComment));
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to add comment." });
+  }
+};
+
+const getComments = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid Lead ID." });
+    }
+
+    const lead = await Lead.exists({ _id: id });
+    if (!lead) {
+      return res.status(404).json({
+        error: `Lead with ID '${id}' not found.`,
+      });
+    }
+
+    const comments = await Comment.find({ lead: id })
+      .populate("author", "name")
+      .sort({ createdAt: 1 });
+    return res.status(200).json(comments.map(formatComment));
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to fetch comments." });
+  }
+};
 
 const createLead = async (req, res) => {
   try {
@@ -365,4 +448,12 @@ const getLeadById = async (req, res) => {
     });
   }
 };
-module.exports = { createLead, getAllLeads, updateLead, deleteLead, getLeadById };
+module.exports = {
+  createLead,
+  getAllLeads,
+  updateLead,
+  deleteLead,
+  getLeadById,
+  addComment,
+  getComments,
+};
