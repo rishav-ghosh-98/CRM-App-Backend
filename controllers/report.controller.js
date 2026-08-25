@@ -16,20 +16,28 @@ const getPipeLineReport = async (req, res) => {
 };
 const getLastWeekReport = async (req, res) => {
   try {
-    const lastWeek = new Date();
-
+    const now = new Date();
+    const lastWeek = new Date(now);
     lastWeek.setDate(lastWeek.getDate() - 7);
 
     const closedLeads = await Lead.find({
       status: "Closed",
       closedAt: {
         $gte: lastWeek,
+        $lte: now,
       },
     })
       .populate("salesAgent", "name")
       .select("name salesAgent closedAt");
 
-    return res.status(200).json(closedLeads);
+    const report = closedLeads.map((lead) => ({
+      id: lead._id,
+      name: lead.name,
+      salesAgent: lead.salesAgent?.name || null,
+      closedAt: lead.closedAt,
+    }));
+
+    return res.status(200).json(report);
   } catch (error) {
     console.error(error);
     return res.status(500).json({
