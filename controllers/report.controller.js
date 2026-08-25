@@ -1,12 +1,12 @@
 const Lead = require("../models/leads.model");
 const getPipeLineReport = async (req, res) => {
   try {
-    const totalLeadsInPipeLine = await Lead.countDocuments({
+    const totalLeadsInPipeline = await Lead.countDocuments({
       status: {
         $ne: "Closed",
       },
     });
-    return res.status(200).json({ totalLeadsInPipeLine });
+    return res.status(200).json({ totalLeadsInPipeline });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
